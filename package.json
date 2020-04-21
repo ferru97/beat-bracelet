@@ -1,0 +1,22 @@
+{
+  "name": "beat-bracelet",
+  "version": "0.0.1",
+  "description": "Beat Bracelet",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ferru97/beat-bracelet.git"
+  },
+  "author": "Vito Ferrulli",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ferru97/beat-bracelet/issues"
+  },
+  "homepage": "https://github.com/ferru97/beat-bracelet#readme",
+  "dependencies": {
+    "mosca": "^2.8.3"
+  }
+}
