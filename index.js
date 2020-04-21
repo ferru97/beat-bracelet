@@ -15,9 +15,19 @@ var settings = {
 
 var authenticate = function(client, username, password, callback) {
   var authorized = (username === 'test_user' && password.toString() === 'test_password');
-  if (authorized) client.user = username;
+  if (authorized) client.user = client.id;
   else console.log("Client autentication faild");
   callback(null, authorized);
+}
+
+var authorizeSubscribe = function(client, topic, callback) {
+  if(client.id != topic.split('/')[0]) console.log("Unauthorized Subscribe!");
+  callback(null, client.id == topic.split('/')[0]);
+}
+
+var authorizePublish = function(client, topic, payload, callback) {
+  if(client.id != topic.split('/')[0]) console.log("Unauthorized Publish!");
+  callback(null, client.id == topic.split('/')[0]);
 }
 
 var server = new mosca.Server(settings);
@@ -31,10 +41,13 @@ server.on('published', function(packet, client) {
   console.log('Published', packet.payload);
 });
 
+
 server.on('ready', setup);
 
 // fired when the mqtt server is ready
 function setup() {
   server.authenticate = authenticate;
+  server.authorizePublish = authorizePublish;
+  server.authorizeSubscribe = authorizeSubscribe;
   console.log('Mosca server is up and running');
 }

@@ -12,6 +12,7 @@ const char* mqttPassword = "test_password";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+const char* update_topic = "id-user-test/new_inter";
 int monitorDelay = 60000; //delay between two monitoring session in ms
 
 void setup() {
@@ -24,10 +25,12 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+  delay(500);
   if(!WiFi.isConnected())
     connectToWiFi();
-  if(!client.connected())
+  if(client.connected() == false)
     connectToServer();
+  client.publish("id-user-test/test", "OOOK!"); 
     
   client.loop();
 }
@@ -52,15 +55,17 @@ void connectToServer(){
  
     if (client.connect(mqttID, mqttUser, mqttPassword )) {
  
-      Serial.println("Mqtt server connected");  
+      Serial.println("Mqtt server connected"); 
+      client.subscribe(update_topic); 
+      client.publish("id-user-test/test", "Test Publish!");
  
     } else {
  
       Serial.print("Mqtt connection failed with state ");
       Serial.print(client.state());
-      delay(2000);
  
     }
+    delay(2000);
   }
 }
 
@@ -68,6 +73,9 @@ void connectToServer(){
 void messageReceived(char* topic, byte* payload, unsigned int length){
   Serial.print("Message arrived in topic: ");
   Serial.println(topic);
+  if(topic == "update_topic"){
+    
+  }
  
   Serial.print("Message:");
   for (int i = 0; i < length; i++) {
