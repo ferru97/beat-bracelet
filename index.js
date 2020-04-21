@@ -13,6 +13,13 @@ var settings = {
   backend: ascoltatore
 };
 
+var authenticate = function(client, username, password, callback) {
+  var authorized = (username === 'test_user' && password.toString() === 'test_password');
+  if (authorized) client.user = username;
+  else console.log("Client autentication faild");
+  callback(null, authorized);
+}
+
 var server = new mosca.Server(settings);
 
 server.on('clientConnected', function(client) {
@@ -28,5 +35,6 @@ server.on('ready', setup);
 
 // fired when the mqtt server is ready
 function setup() {
+  server.authenticate = authenticate;
   console.log('Mosca server is up and running');
 }

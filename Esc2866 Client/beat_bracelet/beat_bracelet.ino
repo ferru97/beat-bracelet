@@ -2,6 +2,7 @@
 #include <DNSServer.h>            //Local DNS Server used for redirecting all requests to the configuration portal
 #include <ESP8266WebServer.h>     //Local WebServer used to serve the configuration portal
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
+#include <PubSubClient.h>
 
 const char* mqttServer = "192.168.178.41";
 const int mqttPort = 1883;
@@ -11,9 +12,27 @@ const char* mqttPassword = "test_password";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+int monitorDelay = 60000; //delay between two monitoring session in ms
+
 void setup() {
-  Serial.begin(115200);
-  // put your setup code here, to run once:
+  Serial.begin(115200);  
+
+  connectToWiFi();
+  connectToServer();
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  if(!WiFi.isConnected())
+    connectToWiFi();
+  if(!client.connected())
+    connectToServer();
+    
+  client.loop();
+}
+
+void connectToWiFi(){
   WiFiManager wifiManager;
   wifiManager.setAPCallback(configModeCallback);
   
@@ -21,7 +40,10 @@ void setup() {
 
   //TURN WIFI-LED ON
   Serial.println("Wifi connected");
+}
 
+
+void connectToServer(){
   //Connect to the mqtt server
   client.setServer(mqttServer, mqttPort);
   client.setCallback(messageReceived);
@@ -40,16 +62,21 @@ void setup() {
  
     }
   }
-
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
 
-}
-
-void messageReceived(){
-  
+void messageReceived(char* topic, byte* payload, unsigned int length){
+  Serial.print("Message arrived in topic: ");
+  Serial.println(topic);
+ 
+  Serial.print("Message:");
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+  }
+ 
+  Serial.println();
+  Serial.println("-----------------------");
+ 
 }
 
 void configModeCallback (WiFiManager *myWiFiManager) {
