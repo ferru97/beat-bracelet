@@ -1,4 +1,6 @@
 var mosca = require('mosca');
+var DBsql = require('./sqlDB');
+var md5 = require('md5');
 
 var ascoltatore = {
   //using ascoltatore
@@ -14,7 +16,9 @@ var settings = {
 };
 
 var authenticate = function(client, username, password, callback) {
-  var authorized = (username === 'test_user' && password.toString() === 'test_password');
+  password = md5(password)
+  var authorized = (DBsql.authenticate(client.id,password));
+
   if (authorized) client.user = client.id;
   else console.log("Client autentication faild");
   callback(null, authorized);

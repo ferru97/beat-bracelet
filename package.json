@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/ferru97/beat-bracelet#readme",
   "dependencies": {
-    "mosca": "^2.8.3"
+    "md5": "^2.2.1",
+    "mosca": "^2.8.3",
+    "sync-mysql": "^3.0.1"
   }
 }

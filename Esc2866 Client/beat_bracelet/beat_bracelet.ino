@@ -6,13 +6,13 @@
 
 const char* mqttServer = "192.168.178.41";
 const int mqttPort = 1883;
-const char* mqttID = "id-user-test";
+const char* mqttID = "1";
 const char* mqttUser = "test_user";
-const char* mqttPassword = "test_password";
+const char* mqttPassword = "1234";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-const char* update_topic = "id-user-test/new_inter";
+const char* update_topic = "1/new_inter";
 int monitorDelay = 60000; //delay between two monitoring session in ms
 
 void setup() {
@@ -30,7 +30,6 @@ void loop() {
     connectToWiFi();
   if(client.connected() == false)
     connectToServer();
-  client.publish("id-user-test/test", "OOOK!"); 
     
   client.loop();
 }
@@ -56,9 +55,7 @@ void connectToServer(){
     if (client.connect(mqttID, mqttUser, mqttPassword )) {
  
       Serial.println("Mqtt server connected"); 
-      client.subscribe(update_topic); 
-      client.publish("id-user-test/test", "Test Publish!");
- 
+      client.subscribe(update_topic);  
     } else {
  
       Serial.print("Mqtt connection failed with state ");
