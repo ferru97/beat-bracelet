@@ -13,7 +13,18 @@ var connection = new MySql({
 function authenticate(id,psw){
     const result = connection.queueQuery(`SELECT COUNT(*) AS n FROM bracelet WHERE id='${id}' AND password='${psw}'`);
     return result()[0].n == 1;
-} 
+}
+
+
+function loginClient(email,psw){
+  const result = connection.queueQuery(`SELECT id FROM user WHERE email='${email}' AND password='${psw}'`);
+  if(result().length==1){
+    const id = result[0].id;
+    const result2 = connection.queueQuery(`SELECT id,id_bracelet, name FROM user_bracelet WHERE id_user='${id}' `);
+    return result2();
+  }else
+    return "{login: faild}";
+}
 
 module.exports = {
     authenticate: authenticate,
