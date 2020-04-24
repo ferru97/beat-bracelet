@@ -23,7 +23,7 @@ public class BraceletAdapter extends ArrayAdapter<Bracelet> {
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         convertView = inflater.inflate(R.layout.bracelet_element, null);
         TextView name = (TextView)convertView.findViewById(R.id.brc_name);
-        TextView last_activity = (TextView)convertView.findViewById(R.id.brc_name);
+        TextView last_activity = (TextView)convertView.findViewById(R.id.brc_last);
         Bracelet c = getItem(position);
         name.setText(c.getName());
         last_activity.setText(c.getLast_activity());

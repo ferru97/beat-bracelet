@@ -16,14 +16,14 @@ import java.util.Map;
 
 public class HTTPRequest {
 
-    public static void POST_Request(Context context, String url, final HashMap<String,String> params,final HTTPResponseHandler handler){
+    public static void POST_Request(final String reqName,Context context, String url, final HashMap<String,String> params,final HTTPResponseHandler handler){
         RequestQueue queue = Volley.newRequestQueue(context);
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        handler.handleResponse(response);
+                        handler.handleResponse(reqName,response);
                     }
                 },
                 new Response.ErrorListener() {

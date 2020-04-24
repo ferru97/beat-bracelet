@@ -12,11 +12,20 @@ import android.widget.EditText;
 
 import androidx.fragment.app.DialogFragment;
 
-public class AddBracieletDialog extends DialogFragment {
-    private View customView;
+import com.ferru97.beatbracelet.data.API;
+import com.ferru97.beatbracelet.utils.HTTPRequest;
+import com.ferru97.beatbracelet.utils.HTTPResponseHandler;
 
-    public AddBracieletDialog(View customView){
+import java.util.HashMap;
+import java.util.Map;
+
+public class AddBracieletDialog extends DialogFragment  {
+    private View customView;
+    private HTTPResponseHandler resHandler;
+
+    public AddBracieletDialog(View customView, HTTPResponseHandler resHandler){
         this.customView = customView;
+        this.resHandler = resHandler;
     }
 
     @Override
@@ -29,11 +38,13 @@ public class AddBracieletDialog extends DialogFragment {
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         // FIRE ZE MISSILES!
-                        EditText idB = customView.findViewById(R.id.idB);
-                        EditText pswB = customView.findViewById(R.id.pswB);
-                        Log.d("test :", idB.getText().toString());
-                        dismiss();
-                        showAlert("Messaggio");
+                        EditText bid = customView.findViewById(R.id.idB);
+                        EditText psw = customView.findViewById(R.id.pswB);
+                        Map<String, String> params = new HashMap<String, String>();
+                        params.put("uid", API.client_id);
+                        params.put("bid", bid.getText().toString());
+                        params.put("psw", psw.getText().toString());
+                        HTTPRequest.POST_Request("add_bracelet",getActivity(), API.add_bracelet ,(HashMap<String, String>) params,resHandler);
                     }
                 })
                 .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
@@ -56,4 +67,5 @@ public class AddBracieletDialog extends DialogFragment {
                 });
         alertDialog.show();
     }
+
 }

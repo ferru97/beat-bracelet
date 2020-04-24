@@ -1,6 +1,8 @@
 package com.ferru97.beatbracelet;
 
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -19,6 +21,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.ferru97.beatbracelet.utils.HTTPResponseHandler;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class LoginActivity extends AppCompatActivity implements HTTPResponseHandler {
 
@@ -62,14 +67,37 @@ public class LoginActivity extends AppCompatActivity implements HTTPResponseHand
         Map<String, String> params = new HashMap<String, String>();
         params.put("email", email.getText().toString());
         params.put("psw", psw.getText().toString());
-        HTTPRequest.POST_Request(this, API.login, (HashMap<String, String>) params,this);
+        HTTPRequest.POST_Request("login",this, API.login, (HashMap<String, String>) params,this);
 
     }
 
     @Override
-    public void handleResponse(String response) {
-        /*Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);*/
-        Log.d("Handle Response",response);
+    public void handleResponse(String type, String response) {
+        try{
+            JSONObject res = new JSONObject(response);
+            if(res.get("res").toString().equals("ok")){
+                API.client_id = res.get("id").toString();
+                Intent intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
+            }else{
+                faildLogin();
+            }
+            Log.d("Handle Response",res.get("res").toString());
+        }catch (JSONException e){Log.e("Json error",e.toString());}
+
+    }
+
+
+    private void faildLogin(){
+        AlertDialog alertDialog = new AlertDialog.Builder(LoginActivity.this).create();
+        alertDialog.setTitle("Error");
+        alertDialog.setMessage("Invalid credentials");
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
     }
 }
