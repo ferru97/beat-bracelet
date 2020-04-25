@@ -31,9 +31,21 @@ float beatsPerMinute;
 int beatAvg;
 const int ten_sec = 20000;
 
+const int buzzer = 14;
+const int freq = 1100;
 
+const int wifiLed = 12;
+const int touch_button = 13;
+
+void ICACHE_RAM_ATTR buttonPressed ();
 void setup() {
   Serial.begin(115200);  
+
+  pinMode(buzzer,OUTPUT);
+  pinMode(wifiLed,OUTPUT);
+
+  pinMode(touch_button, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(touch_button), buttonPressed, RISING);
 
   connectToWiFi();
 
@@ -64,15 +76,16 @@ void loop() {
   if(client.connected())
     client.loop();
 
- /* monitorBeat();
+  monitorBeat();
   Serial.println("Avg BPM=");
   Serial.print(beatAvg);
   Serial.println("");
 
-  delay(10000);*/
+  delay(10000);
 }
 
 void monitorBeat(){
+   playBuzzer(2);
   int start = millis();
   while(millis()-start < ten_sec){
     long irValue = particleSensor.getIR();
@@ -98,6 +111,7 @@ void monitorBeat(){
       }
     }
   }
+   playBuzzer(1);
   
 }
 
@@ -107,8 +121,8 @@ void connectToWiFi(){
   
   wifiManager.autoConnect("Beat Bracelet");
 
-  //TURN WIFI-LED ON
-  Serial.println("Wifi connected");
+  digitalWrite(wifiLed,LOW);
+  Serial.println("Wifi connected");  
 }
 
 
@@ -149,11 +163,33 @@ void messageReceived(char* topic, byte* payload, unsigned int length){
 
 void configModeCallback (WiFiManager *myWiFiManager) {
   Serial.println("Entered config mode");
-  //TURN WIFI-LED ON
+  digitalWrite(wifiLed,HIGH);
 }
 
 void resetWifiSettings(){
   WiFiManager wifiManager;
   wifiManager.resetSettings();
   ESP.reset();
+}
+
+
+
+void playBuzzer(int times){
+   for(int i=0; i<times; i++){
+    //tone(buzzer,freq,500);
+    delay(1000);
+   }
+   
+}
+
+void buttonPressed(){
+  Serial.println("Button pressed");
+  bool stop = false;
+  int start =  millis();
+  while(!stop && digitalRead(touch_button)==HIGH){
+    if(millis()-start >=2000){
+      Serial.println("Button pressed for 2 sec");
+      stop = true;
+    }
+  }
 }
