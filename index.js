@@ -1,5 +1,4 @@
 var mosca = require('mosca');
-var DBsql = require('./sqlDB');
 var Mongo = require('./MongoDB');
 var md5 = require('md5');
 
@@ -43,7 +42,15 @@ server.on('clientConnected', function(client) {
 
 // fired when a message is received
 server.on('published', function(packet, client) {
-  console.log('Published', packet.payload);
+  console.log('Published', packet.topic);
+  if(client!=null){
+    if(client==null || client.id != packet.topic.split('/')[0]) console.log("Unauthorized Publish!")
+    else{
+      if(client!=null && packet.topic.split('/')[1] == "new_measure")
+        Mongo.BRC_addMeasurement(client.id,packet.payload.toString())
+    }
+  }
+  
 });
 
 

@@ -21,6 +21,16 @@ async function AUTH_bracelet(id,psw){
     
 }
 
+function BRC_addMeasurement(bid,value){
+    var bid = new ObjectID(bid);
+    var measure = {timestamp: Date.now(),value: value}
+    var query = { _id: bid };
+    var newvalue = { $push: {monitors: measure} };
+    bracelet_coll.updateOne(query, newvalue, function(err, res) {
+        if(!err) console.log("New measurement added for"+bid)
+    });
+}
+
 
 async function APP_login(email ,password){
     var query = {password: md5(password), email: email};
@@ -64,5 +74,6 @@ module.exports = {
     AUTH_bracelet: AUTH_bracelet,
     APP_login: APP_login,
     APP_addBracelet: APP_addBracelet,
-    APP_getBracelets: APP_getBracelets
+    APP_getBracelets: APP_getBracelets,
+    BRC_addMeasurement: BRC_addMeasurement
 }

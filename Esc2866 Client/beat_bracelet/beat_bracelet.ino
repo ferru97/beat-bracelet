@@ -16,6 +16,8 @@ const char* mqttPassword = "1234";
 WiFiClient espClient;
 PubSubClient client(espClient);
 const char* update_topic = "5ea15877032e6dcf1174e65c/new_inter";
+const char* new_measure_topic = "5ea15877032e6dcf1174e65c/new_measure";
+char measure_string[10];
 int monitorDelay = 60000; //delay between two monitoring session in ms
 
 
@@ -67,7 +69,12 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  
+  monitorBeat();
+  Serial.println("Avg BPM=");
+  Serial.print(beatAvg);
+  Serial.println("");
+  itoa(beatAvg,measure_string,10);
+
   if(!WiFi.isConnected())
     connectToWiFi();
   if(!client.connected())
@@ -76,17 +83,19 @@ void loop() {
   if(client.connected())
     client.loop();
 
-  monitorBeat();
-  Serial.println("Avg BPM=");
-  Serial.print(beatAvg);
-  Serial.println("");
+  client.publish(new_measure_topic,measure_string);
   beatAvg = 0;
 
   delay(10000);
 }
 
+void pubMeasurement(){
+  
+}
+
 void monitorBeat(){
-   playBuzzer(2);
+  particleSensor.wakeUp();
+  playBuzzer(2);
   int start = millis();
   while(millis()-start < ten_sec){
     long irValue = particleSensor.getIR();
@@ -113,6 +122,7 @@ void monitorBeat(){
     }
   }
    playBuzzer(1);
+   particleSensor.shutDown();
   
 }
 
