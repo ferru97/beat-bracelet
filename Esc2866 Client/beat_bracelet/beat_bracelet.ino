@@ -10,12 +10,12 @@
 
 const char* mqttServer = "192.168.178.41";
 const int mqttPort = 1883;
-const char* mqttID = "1";
+const char* mqttID = "5ea15877032e6dcf1174e65c";
 const char* mqttUser = "test_user";
 const char* mqttPassword = "1234";
 WiFiClient espClient;
 PubSubClient client(espClient);
-const char* update_topic = "1/new_inter";
+const char* update_topic = "5ea15877032e6dcf1174e65c/new_inter";
 int monitorDelay = 60000; //delay between two monitoring session in ms
 
 
@@ -80,6 +80,7 @@ void loop() {
   Serial.println("Avg BPM=");
   Serial.print(beatAvg);
   Serial.println("");
+  beatAvg = 0;
 
   delay(10000);
 }

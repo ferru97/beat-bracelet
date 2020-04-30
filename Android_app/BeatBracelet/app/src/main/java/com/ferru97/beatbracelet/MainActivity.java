@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
                 JSONObject res = new JSONObject(response);
                 if(res.get("res").toString().equals("ok")){
                     alertMsg("Success!","New device added");
-
+                    populateListRequest();
                 }else{
                     alertMsg("Error","Invalid credentials");
                 }
@@ -100,16 +100,15 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
                 if(res.get("res").toString().equals("ok")){
                     JSONObject temp = null;
                     JSONArray array = new JSONArray(res.get("list").toString());
-                    list.clear();
-                    for(int i=0; i<array.length(); i++){
-                        temp = new JSONObject(array.get(i).toString());
-                        list.add(new Bracelet(temp.get("_id").toString(),temp.get("name").toString(),temp.get("last_activity").toString()));
+                    if(array.length()>0){
+                        list.clear();
+                        for(int i=0; i<array.length(); i++){
+                            temp = new JSONObject(array.get(i).toString());
+                            list.add(new Bracelet(temp.get("_id").toString(),temp.get("name").toString(),temp.get("last_activity").toString()));
+                        }
+                        listView.deferNotifyDataSetChanged();
                     }
-
-                    Log.d("BO",list.get(0).getId());
-                    listView.deferNotifyDataSetChanged();
                 }
-
             }catch (JSONException e){Log.e("Json error",e.toString());}
         }
 
