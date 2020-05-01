@@ -6,4 +6,9 @@ public class API {
     public static String get_bracelets = "http://192.168.178.41:3000/api/get_bracelets";
 
     public static String client_id = null;
+    public static String client_psw = null;
+    public static String broker_url = "tcp://192.168.178.41:1883";
+
+    public static String mqtt_subAlert = "/alert";
+
 }

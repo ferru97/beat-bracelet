@@ -26,6 +26,14 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import org.eclipse.paho.android.service.MqttAndroidClient;
+import org.eclipse.paho.client.mqttv3.IMqttActionListener;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,9 +43,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity  implements HTTPResponseHandler {
+public class MainActivity extends AppCompatActivity  implements HTTPResponseHandler, MqttCallback {
     ListView listView ;
-    List<Bracelet> list = new LinkedList<>();;
+    List<Bracelet> list = new LinkedList<>();
+    MqttAndroidClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,9 +77,13 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Bracelet item = (Bracelet) adapter.getItem(position);
                 Log.d("IDB",item.getId());
+
             }
         });
 
+        client = new MqttAndroidClient(this.getApplicationContext(), API.broker_url, API.client_id);
+        client.setCallback(this);
+        connect2MQTTbroker();
     }
 
     private void populateListRequest(){
@@ -127,4 +140,72 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
         alertDialog.show();
     }
 
+
+    private void connect2MQTTbroker(){
+        MqttConnectOptions options = new MqttConnectOptions();
+        options.setUserName("*"+API.client_id);
+        options.setPassword(API.client_psw.toCharArray());
+
+        try {
+            IMqttToken token = client.connect(options);
+            token.setActionCallback(new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    // We are connected
+                    Log.d("MQTT", "onSuccess");
+                    sub2Alert();
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    // Something went wrong e.g. connection timeout or firewall problems
+                    Log.d("MQTT", "onFailure");
+
+                }
+            });
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sub2Alert(){
+        int qos = 1;
+        for(int i=0; i<list.size(); i++){
+            String topic = list.get(i).getId()+API.mqtt_subAlert;
+            try {
+                IMqttToken subToken = client.subscribe(topic, qos);
+                subToken.setActionCallback(new IMqttActionListener() {
+                    @Override
+                    public void onSuccess(IMqttToken asyncActionToken) {
+                        // The message was published
+                        Log.d("MQTT-Alert", "subscribed!");
+                    }
+
+                    @Override
+                    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                        // The subscription could not be performed, maybe the user was not
+                        // authorized to subscribe on the specified topic e.g. using wildcards
+                        Log.d("MQTT-Alert", "Error subscription!");
+                    }
+                });
+            } catch (MqttException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void connectionLost(Throwable cause) {
+
+    }
+
+    @Override
+    public void messageArrived(String topic, MqttMessage message) throws Exception {
+        Log.d(topic,message.toString());
+    }
+
+    @Override
+    public void deliveryComplete(IMqttDeliveryToken token) {
+
+    }
 }

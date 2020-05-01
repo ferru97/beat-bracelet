@@ -67,6 +67,7 @@ public class LoginActivity extends AppCompatActivity implements HTTPResponseHand
         Map<String, String> params = new HashMap<String, String>();
         params.put("email", email.getText().toString());
         params.put("psw", psw.getText().toString());
+        API.client_psw = psw.getText().toString();
         HTTPRequest.POST_Request("login",this, API.login, (HashMap<String, String>) params,this);
 
     }

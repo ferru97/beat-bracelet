@@ -17,6 +17,7 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 const char* update_topic = "5ea15877032e6dcf1174e65c/new_inter";
 const char* new_measure_topic = "5ea15877032e6dcf1174e65c/new_measure";
+const char* new_alert = "5ea15877032e6dcf1174e65c/alert";
 char measure_string[10];
 int monitorDelay = 60000; //delay between two monitoring session in ms
 
@@ -75,10 +76,7 @@ void loop() {
   Serial.println("");
   itoa(beatAvg,measure_string,10);
 
-  if(!WiFi.isConnected())
-    connectToWiFi();
-  if(!client.connected())
-    connectToServer();
+  checkConnections();
 
   if(client.connected())
     client.loop();
@@ -89,8 +87,11 @@ void loop() {
   delay(10000);
 }
 
-void pubMeasurement(){
-  
+void checkConnections(){
+  if(!WiFi.isConnected())
+    connectToWiFi();
+  if(!client.connected())
+    connectToServer();
 }
 
 void monitorBeat(){
@@ -200,6 +201,8 @@ void buttonPressed(){
   while(!stop && digitalRead(touch_button)==HIGH){
     if(millis()-start >=2000){
       Serial.println("Button pressed for 2 sec");
+      checkConnections();
+      client.publish(new_alert,mqttID);
       stop = true;
     }
   }

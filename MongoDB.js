@@ -70,10 +70,31 @@ async function APP_getBracelets(uid, callback){
     })
 }
 
+
+async function APP_auth(uid,psw){
+    psw = md5(psw)
+    var uid = new ObjectID(uid);
+    var query = {_id: uid, password: psw};
+    var res = await app_coll.findOne(query);
+    
+    return res;
+}
+
+
+async function APP_checkIsMyBrc(uid,bid){
+    var uid = new ObjectID(uid);
+    var bid = new ObjectID(bid);
+    var query = {_id: uid, bracelets: bid};
+    var res = await app_coll.findOne(query);
+    return res;
+}
+
 module.exports = {
     AUTH_bracelet: AUTH_bracelet,
     APP_login: APP_login,
     APP_addBracelet: APP_addBracelet,
     APP_getBracelets: APP_getBracelets,
-    BRC_addMeasurement: BRC_addMeasurement
+    BRC_addMeasurement: BRC_addMeasurement,
+    APP_auth: APP_auth,
+    APP_checkIsMyBrc: APP_checkIsMyBrc
 }
