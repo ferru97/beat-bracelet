@@ -3,6 +3,11 @@ package com.ferru97.beatbracelet;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
@@ -19,6 +24,8 @@ import com.google.android.material.snackbar.Snackbar;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.FragmentManager;
 
 import android.util.Log;
@@ -72,18 +79,26 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
         listView.setAdapter(adapter);
         populateListRequest();
 
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Bracelet item = (Bracelet) adapter.getItem(position);
-                Log.d("IDB",item.getId());
-
+                goBraceletPage(item.getId());
             }
         });
 
         client = new MqttAndroidClient(this.getApplicationContext(), API.broker_url, API.client_id);
         client.setCallback(this);
         connect2MQTTbroker();
+
+    }
+
+
+    private void goBraceletPage(String bid){
+        Intent intent = new Intent(this, BraceletActivity.class);
+        intent.putExtra("bid",bid);
+        startActivity(intent);
     }
 
     private void populateListRequest(){
@@ -108,6 +123,7 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
         }
 
         if(type.equals("get_bracelets")){
+            Log.d("KTMM",response);
             try{
                 JSONObject res = new JSONObject(response);
                 if(res.get("res").toString().equals("ok")){
@@ -160,9 +176,11 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                     // Something went wrong e.g. connection timeout or firewall problems
                     Log.d("MQTT", "onFailure");
-
+                    connect2MQTTbroker();
                 }
+
             });
+
         } catch (MqttException e) {
             e.printStackTrace();
         }
@@ -196,12 +214,48 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
 
     @Override
     public void connectionLost(Throwable cause) {
-
+        connect2MQTTbroker();
     }
 
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception {
-        Log.d(topic,message.toString());
+
+        String[] tokens = topic.split("/");
+        if(tokens[1].equals("alert")){
+            Log.d(tokens[1],message.toString());
+            String name = "";
+            for(int i=0; i<list.size() && name=="";i++){
+                if(list.get(i).getId().equals(message.toString()))
+                    name = list.get(i).getName();
+            }
+            notifyAlert("New alert sent from "+name+" !",message.toString());
+        }
+    }
+
+    public void notifyAlert(String title,String bid){
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("01",
+                    "ALERT_CH",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription("YOUR_NOTIFICATION_CHANNEL_DESCRIPTION");
+            mNotificationManager.createNotificationChannel(channel);
+        }
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), "YOUR_CHANNEL_ID")
+                .setSmallIcon(R.mipmap.ic_launcher) // notification icon
+                .setContentTitle(title) // title for notification
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                //.setContentText()// message for notification
+                .setAutoCancel(true); // clear notification after click
+
+        Intent intent = new Intent(this, Bracelet.class);
+        intent.putExtra("bid",bid);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        mBuilder.setContentIntent(pendingIntent);
+        mNotificationManager.notify(0, mBuilder.build());
     }
 
     @Override

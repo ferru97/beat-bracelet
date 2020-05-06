@@ -40,6 +40,10 @@ const int freq = 1100;
 const int wifiLed = 12;
 const int touch_button = 13;
 
+bool receivedTime = false;
+
+int interval = 600000;
+
 void ICACHE_RAM_ATTR buttonPressed ();
 void setup() {
   Serial.begin(115200);  
@@ -55,6 +59,10 @@ void setup() {
   client.setServer(mqttServer, mqttPort);
   client.setCallback(messageReceived);
   connectToServer();
+  while(!receivedTime){
+    client.loop();
+    delay(200);
+  }
 
   //Beat sensor configurations
   if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed
@@ -70,9 +78,9 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  monitorBeat();
-  Serial.println("Avg BPM=");
-  Serial.print(beatAvg);
+  /*monitorBeat();
+  Serial.print("Avg BPM=");
+  Serial.println(beatAvg);
   Serial.println("");
   itoa(beatAvg,measure_string,10);
 
@@ -81,10 +89,13 @@ void loop() {
   if(client.connected())
     client.loop();
 
-  client.publish(new_measure_topic,measure_string);
-  beatAvg = 0;
-
-  delay(10000);
+  //client.publish(new_measure_topic,measure_string);
+  beatAvg = 0;*/
+  checkConnections();
+  Serial.println("Awake!");
+  wifi_set_sleep_type(MODEM_SLEEP_T);
+  delay(interval);
+  
 }
 
 void checkConnections(){
@@ -152,17 +163,18 @@ void connectToServer(){
       delay(2000);
     }
   }
-  client.subscribe(update_topic);
+  client.subscribe(update_topic,1);
 }
 
 
 void messageReceived(char* topic, byte* payload, unsigned int length){
   Serial.print("Message arrived in topic: ");
   Serial.println(topic);
-  /*if(topic == "update_topic"){
-    
-  }*/
- 
+  receivedTime = true;
+  if(strcmp(topic,update_topic)==0){
+    interval = atoi((char*)payload)*60000;
+    Serial.println(interval);
+  }
   Serial.print("Message:");
   for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
@@ -207,3 +219,12 @@ void buttonPressed(){
     }
   }
 }
+
+
+int string_to_int(const char* number, int size)
+  {
+      char stackbuf[size+1];
+      memcpy(stackbuf, number, size);
+      stackbuf[size] = '\0'; //or you could use strncpy
+      return atoi(stackbuf);
+  }

@@ -1,6 +1,14 @@
 var mosca = require('mosca');
 var Mongo = require('./MongoDB');
-var md5 = require('md5');
+
+function pubNewIntrval(bid,value){
+  server.publish({
+    topic: bid+'/new_inter',
+    payload: Buffer.from(value),
+    qos: 1, // this is important for offline messaging
+    retained: true
+  }, null, function done() {})
+}
 
 var ascoltatore = {
   //using ascoltatore
@@ -36,6 +44,18 @@ var authenticate = function(client, username, password, callback) {
 }
 
 var authorizeSubscribe = function(client, topic, callback) {
+  if( client.username[0]!='*' && topic.split('/')[1]=="new_inter"){
+    var authorized = client.id == topic.split('/')[0]
+    if (!authorized) console.log("1.Unauthorized Subscribe for "+topic);
+    else{
+      Mongo.APP_getBrcInfo(client.id).then((result)=>{
+        if (result!=null) pubNewIntrval(client.id,result.interval.toString());
+      })
+      callback(null, authorized);
+    }
+    
+  }
+
   if( client.username[0]!='*' && topic.split('/')[1]=="new_measure"){
     var authorized = client.id == topic.split('/')[0]
     if (!authorized) console.log("1.Unauthorized Subscribe for "+topic);

@@ -89,6 +89,27 @@ async function APP_checkIsMyBrc(uid,bid){
     return res;
 }
 
+
+async function APP_getBrcInfo(bid){
+    var bid = new ObjectID(bid);
+    var query = {_id: bid};
+    var res = await bracelet_coll.findOne(query);
+    
+    return res;
+    
+}
+
+async function APP_setBrcInfo(bid,Bname,Binterval,callback){
+    var bid = new ObjectID(bid);
+    var query = { _id: bid };
+    var newvalue = {$set:{name: Bname, interval: parseInt(Binterval)}};
+    bracelet_coll.updateOne(query, newvalue, function(err, res) {
+        if(!err) callback("ok")
+        else callback("err")
+    });
+}
+
+
 module.exports = {
     AUTH_bracelet: AUTH_bracelet,
     APP_login: APP_login,
@@ -96,5 +117,8 @@ module.exports = {
     APP_getBracelets: APP_getBracelets,
     BRC_addMeasurement: BRC_addMeasurement,
     APP_auth: APP_auth,
-    APP_checkIsMyBrc: APP_checkIsMyBrc
+    APP_checkIsMyBrc: APP_checkIsMyBrc,
+    APP_getBrcInfo:APP_getBrcInfo,
+    APP_setBrcInfo: APP_setBrcInfo
+
 }
