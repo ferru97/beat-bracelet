@@ -71,7 +71,7 @@ app.post('/api/brc_info',function(request,response){
         }
       }
 
-      response.write(`{"res":"ok", "name":"${result.name}", "n_monitor":"${result.monitors.length}","n_alerts":"${result.alerts.length}", "monitors":${JSON.stringify(monitors)}, "alerts":${JSON.stringify(alerts)}, "intrval":"${result.interval}"}`);
+      response.write(`{"res":"ok", "name":"${result.name}", "min_hb":"${result.min_hb}","max_hb":"${result.max_hb}", "monitors":${JSON.stringify(monitors)}, "alerts":${JSON.stringify(alerts)}, "intrval":"${result.interval}"}`);
     }
     else
         response.write(`{"res":"err"}`);
@@ -87,7 +87,7 @@ app.post('/api/set_brc_info',function(request,response){
       response.write(`{"res":"err"}`);
     response.end()
   }
-  Mongo.APP_setBrcInfo(request.body.bid,request.body.name,request.body.interval,callback);
+  Mongo.APP_setBrcInfo(request.body.bid,request.body.name,request.body.interval,callback,request.body.min_hb,request.body.max_hb);
 });
 
 

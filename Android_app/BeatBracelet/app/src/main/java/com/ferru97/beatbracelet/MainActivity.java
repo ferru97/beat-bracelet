@@ -73,6 +73,13 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
             }
         });
 
+        FloatingActionButton fabInfo = findViewById(R.id.aboutFab);
+        fabInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertMsg("About","text");
+            }
+        });
 
         listView = (ListView)findViewById(R.id.bracelets_list);
         final BraceletAdapter adapter = new BraceletAdapter(this, R.layout.bracelet_element, list);
@@ -169,7 +176,11 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
                 public void onSuccess(IMqttToken asyncActionToken) {
                     // We are connected
                     Log.d("MQTT", "onSuccess");
-                    sub2Alert();
+
+                    for(int i=0; i<list.size(); i++){
+                        sub2Alert(list.get(i).getId()+API.mqtt_subAlert);
+                        sub2Alert(list.get(i).getId()+API.mqtt_hbAlert);
+                    }
                 }
 
                 @Override
@@ -186,29 +197,27 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
         }
     }
 
-    private void sub2Alert(){
+    private void sub2Alert(final String topic){
         int qos = 1;
-        for(int i=0; i<list.size(); i++){
-            String topic = list.get(i).getId()+API.mqtt_subAlert;
-            try {
-                IMqttToken subToken = client.subscribe(topic, qos);
-                subToken.setActionCallback(new IMqttActionListener() {
-                    @Override
-                    public void onSuccess(IMqttToken asyncActionToken) {
-                        // The message was published
-                        Log.d("MQTT-Alert", "subscribed!");
-                    }
+        try {
+            IMqttToken subToken = client.subscribe(topic, qos);
+            subToken.setActionCallback(new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    // The message was published
+                    Log.d("MQTT SUB OK", topic);
+                }
 
-                    @Override
-                    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                        // The subscription could not be performed, maybe the user was not
-                        // authorized to subscribe on the specified topic e.g. using wildcards
-                        Log.d("MQTT-Alert", "Error subscription!");
-                    }
-                });
-            } catch (MqttException e) {
-                e.printStackTrace();
-            }
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    // The subscription could not be performed, maybe the user was not
+                    // authorized to subscribe on the specified topic e.g. using wildcards
+                    Log.d("MQTT SUB ERRt", topic);
+                    sub2Alert(topic);
+                }
+            });
+        } catch (MqttException e) {
+            e.printStackTrace();
         }
     }
 
@@ -228,7 +237,16 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
                 if(list.get(i).getId().equals(message.toString()))
                     name = list.get(i).getName();
             }
-            notifyAlert("New alert sent from "+name+" !",message.toString());
+            notifyAlert("New button alert sent from "+name+" !",message.toString());
+        }
+        if(tokens[1].equals("alert_hb")){
+            Log.d(tokens[1],message.toString());
+            String name = "";
+            for(int i=0; i<list.size() && name=="";i++){
+                if(list.get(i).getId().equals(message.toString()))
+                    name = list.get(i).getName();
+            }
+            notifyAlert("Abnormal measurement from "+name+": "+message.toString()+" BPM","");
         }
     }
 
@@ -243,7 +261,7 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
             mNotificationManager.createNotificationChannel(channel);
         }
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), "YOUR_CHANNEL_ID")
-                .setSmallIcon(R.mipmap.ic_launcher) // notification icon
+                .setSmallIcon(R.drawable.alert_button_beatbracelet) // notification icon
                 .setContentTitle(title) // title for notification
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 //.setContentText()// message for notification

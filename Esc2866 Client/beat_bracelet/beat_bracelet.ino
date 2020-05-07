@@ -16,8 +16,10 @@ const char* mqttPassword = "1234";
 WiFiClient espClient;
 PubSubClient client(espClient);
 const char* update_topic = "5ea15877032e6dcf1174e65c/new_inter";
+const char* update_hb_range = "5ea15877032e6dcf1174e65c/new_hb_range";
 const char* new_measure_topic = "5ea15877032e6dcf1174e65c/new_measure";
 const char* new_alert = "5ea15877032e6dcf1174e65c/alert";
+const char* new_alert_hb = "5ea15877032e6dcf1174e65c/alert_hb";
 char measure_string[10];
 int monitorDelay = 60000; //delay between two monitoring session in ms
 
@@ -41,8 +43,12 @@ const int wifiLed = 12;
 const int touch_button = 13;
 
 bool receivedTime = false;
+bool received_min_hb = false;
+bool received_max_hb = false;
 
-int interval = 600000;
+int interval = 0;
+int min_hb = 0;
+int max_hb = 0;
 
 void ICACHE_RAM_ATTR buttonPressed ();
 void setup() {
@@ -59,7 +65,7 @@ void setup() {
   client.setServer(mqttServer, mqttPort);
   client.setCallback(messageReceived);
   connectToServer();
-  while(!receivedTime){
+  while(!receivedTime || !received_min_hb || !received_max_hb){
     client.loop();
     delay(200);
   }
@@ -78,7 +84,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  /*monitorBeat();
+  monitorBeat();
   Serial.print("Avg BPM=");
   Serial.println(beatAvg);
   Serial.println("");
@@ -89,10 +95,14 @@ void loop() {
   if(client.connected())
     client.loop();
 
-  //client.publish(new_measure_topic,measure_string);
-  beatAvg = 0;*/
-  checkConnections();
-  Serial.println("Awake!");
+  client.publish(new_measure_topic,measure_string);
+  if(beatAvg>max_hb || beatAvg<min_hb){
+    client.publish(new_alert_hb,measure_string);
+    Serial.print("Measurement Alert!");
+  }
+    
+  beatAvg = 0;
+
   wifi_set_sleep_type(MODEM_SLEEP_T);
   delay(interval);
   
@@ -164,24 +174,59 @@ void connectToServer(){
     }
   }
   client.subscribe(update_topic,1);
+  client.subscribe(update_hb_range,1);
 }
 
 
 void messageReceived(char* topic, byte* payload, unsigned int length){
   Serial.print("Message arrived in topic: ");
   Serial.println(topic);
-  receivedTime = true;
-  if(strcmp(topic,update_topic)==0){
-    interval = atoi((char*)payload)*60000;
-    Serial.println(interval);
-  }
   Serial.print("Message:");
   for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
   }
- 
-  Serial.println();
+  
+  
+  if(strcmp(topic,update_topic)==0){
+    receivedTime = true;
+    interval = atoi((char*)payload)*60000;
+    Serial.print("Interval(ms): ");
+    Serial.println(interval);
+  }
+  if(strcmp(topic,update_hb_range)==0){
+    received_min_hb = true;
+    received_max_hb = true;
+
+    boolean del_found = false;
+    int po = 0;
+    int num;
+    for (int i=length-1; i>=0; i--) {
+      if(payload[i]=='-'){
+        del_found = true;
+        po = 0;
+      }else{
+        if(!del_found){
+          int num = (int)payload[i]-48;
+          min_hb = min_hb + (num*pow(10,po));
+          po++;
+        }
+        if(del_found){
+          int num = (int)payload[i]-48;
+          max_hb = max_hb + (num*pow(10,po));
+          po++;
+        }
+      }
+      
+    }
+    
+    Serial.print("Min HB: ");
+    Serial.println(min_hb);
+    Serial.print("Max HB: ");
+    Serial.println(max_hb);
+
+    Serial.println();
   Serial.println("-----------------------");
+  }
  
 }
 

@@ -50,6 +50,8 @@ public class BraceletActivity extends AppCompatActivity implements HTTPResponseH
     private EditText brc_name;
     private EditText brc_interval;
     private EditText monitor_date;
+    private EditText min_hb;
+    private EditText max_hb;
     private String bid;
     private LineChart mChart;
     private ListView alerts;
@@ -64,9 +66,8 @@ public class BraceletActivity extends AppCompatActivity implements HTTPResponseH
         brc_name = (EditText) findViewById(R.id.brc_name);
         brc_interval = (EditText) findViewById(R.id.brc_inter);
         monitor_date = (EditText) findViewById(R.id.monitor_date);
-
-        alertList.add("3");
-        alertList.add("1");
+        min_hb = (EditText) findViewById(R.id.min_hb);
+        max_hb = (EditText) findViewById(R.id.max_hb);
 
         alerts = (ListView) findViewById(R.id.alerts_list);
         arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, alertList );
@@ -97,6 +98,8 @@ public class BraceletActivity extends AppCompatActivity implements HTTPResponseH
         params.put("bid", bid);
         params.put("name", brc_name.getText().toString());
         params.put("interval", brc_interval.getText().toString());
+        params.put("min_hb", min_hb.getText().toString());
+        params.put("max_hb", max_hb.getText().toString());
         HTTPRequest.POST_Request("set_brcInfo",this, API.set_braceletInfo ,(HashMap<String, String>) params,this);
 
     }
@@ -122,6 +125,8 @@ public class BraceletActivity extends AppCompatActivity implements HTTPResponseH
                 if(res.get("res").toString().equals("ok")){
                     brc_name.setText(res.get("name").toString());
                     brc_interval.setText(res.get("intrval").toString());
+                    min_hb.setText(res.get("min_hb").toString());
+                    max_hb.setText(res.get("max_hb").toString());
 
                     JSONArray array = new JSONArray(res.get("monitors").toString());
 
@@ -185,53 +190,6 @@ public class BraceletActivity extends AppCompatActivity implements HTTPResponseH
     }
 
     private void plotLineChart(ArrayList<Entry> entries,final String[] months){
-        /*mChart.invalidate();
-        mChart.clear();
-        LineDataSet set1;
-        if (mChart.getData() != null && mChart.getData().getDataSetCount() > 0) {
-            set1 = (LineDataSet) mChart.getData().getDataSetByIndex(0);
-            set1.setValues(values);
-            mChart.getData().notifyDataChanged();
-            mChart.notifyDataSetChanged();
-        } else {
-            set1 = new LineDataSet(values, "Beat Rate");
-            set1.setDrawIcons(false);
-            set1.enableDashedLine(10f, 5f, 0f);
-            set1.enableDashedHighlightLine(10f, 5f, 0f);
-            set1.setColor(Color.DKGRAY);
-            set1.setCircleColor(Color.DKGRAY);
-            set1.setLineWidth(1f);
-            set1.setCircleRadius(3f);
-            set1.setDrawCircleHole(false);
-            set1.setValueTextSize(9f);
-            set1.setDrawFilled(true);
-            set1.setFormLineWidth(1f);
-            set1.setFormLineDashEffect(new DashPathEffect(new float[]{10f, 5f}, 0f));
-            set1.setFormSize(15.f);
-            if (Utils.getSDKInt() >= 18) {
-                Drawable drawable = ContextCompat.getDrawable(this, R.drawable.ic_launcher_background);
-                set1.setFillDrawable(drawable);
-            } else {
-                set1.setFillColor(Color.DKGRAY);
-            }
-            ArrayList<ILineDataSet> dataSets = new ArrayList<>();
-            dataSets.add(set1);
-            LineData data = new LineData(dataSets);
-            mChart.setData(data);
-
-            XAxis xAxis = mChart.getXAxis();
-            xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-            xAxis.setDrawGridLines(false);
-
-            xAxis.setValueFormatter(new IAxisValueFormatter() {
-                @Override
-                public String getFormattedValue(float value, AxisBase axis) {
-                    Date date=new Date((long)value);
-                    return date.toString();
-                }
-            });
-        }*/
-
         LineDataSet dataSet = new LineDataSet(entries, "Customized values");
         dataSet.setColor(ContextCompat.getColor(this, R.color.colorPrimary));
         dataSet.setValueTextColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));

@@ -12,5 +12,6 @@ public class API {
     public static String broker_url = "tcp://192.168.178.41:1883";
 
     public static String mqtt_subAlert = "/alert";
+    public static String mqtt_hbAlert = "/alert_hb";
 
 }

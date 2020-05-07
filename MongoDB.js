@@ -31,6 +31,15 @@ function BRC_addMeasurement(bid,value){
     });
 }
 
+function BRC_addAlert(bid,value){
+    var bid = new ObjectID(bid);
+    var query = { _id: bid };
+    var newvalue = { $push: {alerts: value} };
+    bracelet_coll.updateOne(query, newvalue, function(err, res) {
+        if(!err) console.log("New measurement added for"+bid)
+    });
+}
+
 
 async function APP_login(email ,password){
     var query = {password: md5(password), email: email};
@@ -99,10 +108,10 @@ async function APP_getBrcInfo(bid){
     
 }
 
-async function APP_setBrcInfo(bid,Bname,Binterval,callback){
+async function APP_setBrcInfo(bid,Bname,Binterval,callback,min_HB,max_HB){
     var bid = new ObjectID(bid);
     var query = { _id: bid };
-    var newvalue = {$set:{name: Bname, interval: parseInt(Binterval)}};
+    var newvalue = {$set:{name: Bname, interval: parseInt(Binterval),min_hb: parseInt(min_HB),max_hB: parseInt(max_HB)}};
     bracelet_coll.updateOne(query, newvalue, function(err, res) {
         if(!err) callback("ok")
         else callback("err")
@@ -119,6 +128,7 @@ module.exports = {
     APP_auth: APP_auth,
     APP_checkIsMyBrc: APP_checkIsMyBrc,
     APP_getBrcInfo:APP_getBrcInfo,
-    APP_setBrcInfo: APP_setBrcInfo
+    APP_setBrcInfo: APP_setBrcInfo,
+    BRC_addAlert: BRC_addAlert
 
 }
