@@ -57,6 +57,10 @@ void setup() {
   pinMode(buzzer,OUTPUT);
   pinMode(wifiLed,OUTPUT);
 
+  pinMode(touch_button, INPUT);
+  if(digitalRead(touch_button) == HIGH)
+    resetWifiSettings();
+
   pinMode(touch_button, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(touch_button), buttonPressed, RISING);
 
@@ -207,12 +211,12 @@ void messageReceived(char* topic, byte* payload, unsigned int length){
       }else{
         if(!del_found){
           int num = (int)payload[i]-48;
-          min_hb = min_hb + (num*pow(10,po));
+          max_hb = max_hb + (num*pow(10,po));
           po++;
         }
         if(del_found){
           int num = (int)payload[i]-48;
-          max_hb = max_hb + (num*pow(10,po));
+          min_hb = min_hb + (num*pow(10,po));
           po++;
         }
       }
@@ -245,7 +249,7 @@ void resetWifiSettings(){
 
 void playBuzzer(int times){
    for(int i=0; i<times; i++){
-    //tone(buzzer,freq,500);
+    tone(buzzer,freq,500);
     delay(1000);
    }
    

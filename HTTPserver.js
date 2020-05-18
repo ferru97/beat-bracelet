@@ -54,21 +54,16 @@ app.post('/api/brc_info',function(request,response){
       }else{
         var min = toTimestamp(request.body.filter)*1000;
         var max = min + (60000*60*24); //+24H
-        console.log(min+"/"+max+"/"+result.monitors[0].timestamp)
         monitors = [];
-        alerts = [];
+        alerts = result.alerts
         
         for(var k=0; k<result.monitors.length; k++){
           if(result.monitors[k].timestamp>=min && result.monitors[k].timestamp<=max ){
             monitors.push(result.monitors[k]);
-            console.log("Ok")
           }
             
         }
-        for(var k=0; k<result.monitors.alerts; k++){
-          if(result.alerts[k].timestamp>=min && result.alerts[k].timestamp<=max )
-            alerts.push(result.alerts[k]);
-        }
+  
       }
 
       response.write(`{"res":"ok", "name":"${result.name}", "min_hb":"${result.min_hb}","max_hb":"${result.max_hb}", "monitors":${JSON.stringify(monitors)}, "alerts":${JSON.stringify(alerts)}, "intrval":"${result.interval}"}`);

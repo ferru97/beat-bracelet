@@ -10,6 +10,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -31,6 +32,7 @@ import androidx.fragment.app.FragmentManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.BaseAdapter;
 import android.widget.ListView;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
@@ -130,7 +132,6 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
         }
 
         if(type.equals("get_bracelets")){
-            Log.d("KTMM",response);
             try{
                 JSONObject res = new JSONObject(response);
                 if(res.get("res").toString().equals("ok")){
@@ -142,7 +143,7 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
                             temp = new JSONObject(array.get(i).toString());
                             list.add(new Bracelet(temp.get("_id").toString(),temp.get("name").toString(),temp.get("last_activity").toString()));
                         }
-                        listView.deferNotifyDataSetChanged();
+                        ((BaseAdapter) listView.getAdapter()).notifyDataSetChanged();
                     }
                 }
             }catch (JSONException e){Log.e("Json error",e.toString());}
@@ -233,7 +234,7 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
         if(tokens[1].equals("alert")){
             Log.d(tokens[1],message.toString());
             String name = "";
-            for(int i=0; i<list.size() && name=="";i++){
+            for(int i=0; i<list.size() && name.equals("");i++){
                 if(list.get(i).getId().equals(message.toString()))
                     name = list.get(i).getName();
             }
@@ -242,15 +243,15 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
         if(tokens[1].equals("alert_hb")){
             Log.d(tokens[1],message.toString());
             String name = "";
-            for(int i=0; i<list.size() && name=="";i++){
-                if(list.get(i).getId().equals(message.toString()))
+            for(int i=0; i<list.size() && name.equals("");i++){
+                if(list.get(i).getId().equals(tokens[0]))
                     name = list.get(i).getName();
             }
             notifyAlert("Abnormal measurement from "+name+": "+message.toString()+" BPM","");
         }
     }
 
-    public void notifyAlert(String title,String bid){
+    public void notifyAlert(String title, String bid){
         NotificationManager mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
@@ -264,6 +265,7 @@ public class MainActivity extends AppCompatActivity  implements HTTPResponseHand
                 .setSmallIcon(R.drawable.alert_button_beatbracelet) // notification icon
                 .setContentTitle(title) // title for notification
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.alert_button_beatbracelet))
                 //.setContentText()// message for notification
                 .setAutoCancel(true); // clear notification after click
 

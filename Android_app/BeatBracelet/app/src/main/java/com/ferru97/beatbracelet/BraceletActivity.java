@@ -75,7 +75,10 @@ public class BraceletActivity extends AppCompatActivity implements HTTPResponseH
 
         Intent intent = getIntent();
         bid = intent.getStringExtra("bid");
-        getBrcInfo("");
+        Date now = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        getBrcInfo(sdf.format(now));
+        Log.d("dateX",sdf.format(now));
 
         mChart = findViewById(R.id.chart);
         mChart.setTouchEnabled(true);
@@ -137,8 +140,9 @@ public class BraceletActivity extends AppCompatActivity implements HTTPResponseH
                     for(int i=0; i<array.length(); i++){
                         temp = new JSONObject(array.get(i).toString());
                         Date date=new Date(Long.parseLong(temp.get("timestamp").toString()));
+                        String hour = String.valueOf(date.getHours()) +":"+ String.valueOf(date.getMinutes());
                         entries.add(new Entry(i, Integer.parseInt(temp.get("value").toString())));
-                        months[i] = date.toString();
+                        months[i] = hour;
                     }
 
                    if(entries.size()==0){
@@ -190,7 +194,7 @@ public class BraceletActivity extends AppCompatActivity implements HTTPResponseH
     }
 
     private void plotLineChart(ArrayList<Entry> entries,final String[] months){
-        LineDataSet dataSet = new LineDataSet(entries, "Customized values");
+        LineDataSet dataSet = new LineDataSet(entries, "BPM");
         dataSet.setColor(ContextCompat.getColor(this, R.color.colorPrimary));
         dataSet.setValueTextColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
 
@@ -204,7 +208,12 @@ public class BraceletActivity extends AppCompatActivity implements HTTPResponseH
         IAxisValueFormatter formatter = new IAxisValueFormatter() {
             @Override
             public String getFormattedValue(float value, AxisBase axis) {
-                return months[(int) value];
+                //return months[(int) value];
+                try {
+                    return months[(int) value];
+                } catch (Exception e) {
+                    return "";
+                }
             }
         };
         xAxis.setGranularity(1f); // minimum axis-step (interval) is 1
